@@ -313,6 +313,41 @@ textarea:focus { border-color: rgba(201,168,76,0.4); }
 </head>
 <body>
 
+<!-- API KEY MODAL -->
+<div id="apiKeyModal" style="
+  display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.82);
+  z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#0d0d0d; border:1px solid rgba(201,168,76,0.3); padding:36px 32px; max-width:460px; width:92%;">
+    <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:#f5f0e8; margin-bottom:6px;">
+      Configure sua <em style="color:#c9a84c">API Key</em>
+    </div>
+    <p style="font-size:12.5px; color:#8a9ba8; line-height:1.75; margin-bottom:22px;">
+      Para conversar com a IA, você precisa de uma chave gratuita da Anthropic.<br><br>
+      <strong style="color:#f5f0e8">Passo a passo:</strong><br>
+      1. Acesse <strong style="color:#c9a84c">console.anthropic.com</strong><br>
+      2. Crie uma conta gratuita<br>
+      3. Clique em <strong style="color:#f5f0e8">API Keys → Create Key</strong><br>
+      4. Copie a chave e cole abaixo
+    </p>
+    <input id="apiKeyInput" type="password"
+      placeholder="sk-ant-api03-..."
+      style="width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15);
+        color:#f5f0e8; font-family:'DM Mono',monospace; font-size:12px; padding:12px 14px;
+        outline:none; margin-bottom:8px; box-sizing:border-box;"
+      onkeydown="if(event.key==='Enter') confirmApiKey()"
+    />
+    <div id="apiKeyError" style="color:#e74c3c; font-size:11px; margin-bottom:14px; min-height:16px; font-family:'DM Mono',monospace;"></div>
+    <button onclick="confirmApiKey()" style="width:100%; background:#c9a84c; border:none; color:#0d0d0d;
+      font-family:'DM Mono',monospace; font-size:11px; font-weight:600; letter-spacing:2px;
+      padding:13px; cursor:pointer; text-transform:uppercase; margin-bottom:10px;">
+      Salvar e Conectar →
+    </button>
+    <p style="font-size:10px; color:rgba(255,255,255,0.2); line-height:1.6; font-family:'DM Mono',monospace;">
+      🔒 Chave salva apenas no seu navegador. Nunca compartilhada.
+    </p>
+  </div>
+</div>
+
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
@@ -342,6 +377,7 @@ textarea:focus { border-color: rgba(201,168,76,0.4); }
       <button class="btn-sm" onclick="requestFeedback()" id="btnFeedback" style="display:none">📊 Feedback</button>
       <button class="btn-sm" onclick="resetSession()" id="btnReset" style="display:none">↺ Reiniciar</button>
       <button class="btn-gold-sm" onclick="nextSession()" id="btnNext" style="display:none">Próxima →</button>
+      <button class="btn-sm" onclick="showApiKeyModal()" title="API Key">🔑</button>
     </div>
   </div>
 
@@ -616,15 +652,58 @@ function buildLessonPanel(sess) {
 }
 
 // ═══════════════════════════════════════
+// API KEY MANAGEMENT
+// ═══════════════════════════════════════
+function getApiKey() {
+  return localStorage.getItem('bizenglish_apikey') || '';
+}
+
+function saveApiKey(key) {
+  localStorage.setItem('bizenglish_apikey', key.trim());
+}
+
+function showApiKeyModal() {
+  document.getElementById('apiKeyModal').style.display = 'flex';
+}
+
+function closeApiKeyModal() {
+  if (getApiKey()) document.getElementById('apiKeyModal').style.display = 'none';
+}
+
+function confirmApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val.startsWith('sk-ant-')) {
+    document.getElementById('apiKeyError').textContent = 'Chave inválida. Deve começar com sk-ant-...';
+    return;
+  }
+  saveApiKey(val);
+  document.getElementById('apiKeyModal').style.display = 'none';
+  document.getElementById('apiKeyError').textContent = '';
+}
+
+// ═══════════════════════════════════════
 // CLAUDE API
 // ═══════════════════════════════════════
 async function callClaude(messages, systemOverride) {
+  const apiKey = getApiKey();
+  if (!apiKey) { showApiKeyModal(); throw new Error('No API key'); }
+
   const system = systemOverride || currentSession.systemPrompt;
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-allow-any-source-unsafe': 'true'
+    },
     body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system, messages })
   });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({}));
+    if (res.status === 401) { showApiKeyModal(); throw new Error('Invalid API key'); }
+    throw new Error(err.error?.message || 'API error');
+  }
   const data = await res.json();
   return data.content.map(b => b.text || '').join('');
 }
@@ -967,6 +1046,15 @@ if (window.speechSynthesis) {
 }
 
 buildSidebar();
+
+// Show API key modal if no key saved yet
+if (!getApiKey()) {
+  showApiKeyModal();
+} else {
+  document.getElementById('apiKeyModal').style.display = 'none';
+  // Pre-fill if key exists
+  document.getElementById('apiKeyInput').value = getApiKey();
+}
 </script>
 </body>
 </html>
