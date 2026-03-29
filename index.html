@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizEnglish · Voice Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0d0d0d;
+  --paper: #f5f0e8;
+  --cream: #ede8dc;
+  --gold: #c9a84c;
+  --gold-light: #e8c96a;
+  --rust: #b84c2a;
+  --slate: #1e2a35;
+  --slate2: #2d3a45;
+  --mist: #8a9ba8;
+  --white: #ffffff;
+  --green: #2e7d5e;
+  --red: #c0392b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  background: var(--slate);
+  color: var(--paper);
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 260px;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--paper);
+  line-height: 1.1;
+}
+
+.logo-text em { color: var(--gold); font-style: italic; }
+.logo-sub { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--mist); text-transform: uppercase; margin-top: 4px; }
+
+.sidebar-progress { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.progress-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--mist); text-transform: uppercase; margin-bottom: 7px; }
+.progress-bar { background: rgba(255,255,255,0.08); height: 3px; border-radius: 2px; overflow: hidden; }
+.progress-fill { background: var(--gold); height: 100%; width: 0%; transition: width 0.5s ease; }
+.progress-text { font-size: 11px; color: var(--mist); margin-top: 5px; }
+
+.sidebar-nav { padding: 10px 0; flex: 1; }
+.nav-module-title {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px;
+  color: var(--mist); text-transform: uppercase; padding: 10px 18px 5px;
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-module-title::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+
+.nav-session {
+  padding: 8px 18px; cursor: pointer; display: flex; align-items: center;
+  gap: 9px; transition: background 0.15s; border-left: 2px solid transparent;
+  font-size: 12px; color: rgba(255,255,255,0.45);
+}
+.nav-session:hover { background: rgba(255,255,255,0.04); color: var(--paper); }
+.nav-session.active { border-left-color: var(--gold); background: rgba(201,168,76,0.08); color: var(--paper); }
+.nav-session.completed { color: var(--green); }
+
+.nav-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.15); flex-shrink: 0; }
+.nav-session.active .nav-dot { background: var(--gold); }
+.nav-session.completed .nav-dot { background: var(--green); }
+
+/* ── MAIN ── */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* TOPBAR */
+.topbar {
+  background: var(--slate2); border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.session-tag { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 2px; }
+.session-title-top { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; }
+.topbar-right { display: flex; gap: 8px; align-items: center; }
+
+.mode-toggle {
+  display: flex; border: 1px solid rgba(255,255,255,0.12); overflow: hidden;
+}
+.mode-btn {
+  background: transparent; border: none; color: var(--mist);
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px;
+  padding: 6px 12px; cursor: pointer; text-transform: uppercase; transition: all 0.15s;
+}
+.mode-btn.active { background: var(--gold); color: var(--ink); }
+
+.btn-sm {
+  background: transparent; border: 1px solid rgba(255,255,255,0.12); color: var(--mist);
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px;
+  padding: 6px 12px; cursor: pointer; text-transform: uppercase; transition: all 0.15s;
+}
+.btn-sm:hover { border-color: var(--gold); color: var(--gold); }
+.btn-gold-sm {
+  background: var(--gold); border: none; color: var(--ink);
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 1.5px;
+  padding: 6px 14px; cursor: pointer; text-transform: uppercase;
+}
+
+/* ── CONTENT ── */
+.content-area { flex: 1; display: flex; overflow: hidden; }
+
+/* LESSON PANEL */
+.lesson-panel {
+  width: 300px; flex-shrink: 0; background: var(--slate2);
+  border-right: 1px solid rgba(255,255,255,0.06); overflow-y: auto;
+}
+.panel-sec { padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.panel-sec-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--mist); text-transform: uppercase; margin-bottom: 10px; }
+.scenario-box {
+  background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.18);
+  border-left: 3px solid var(--gold); padding: 12px; font-size: 12px; line-height: 1.65; color: rgba(245,240,232,0.8);
+}
+.scenario-box strong { color: var(--gold); }
+.obj-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.obj-list li { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+.obj-list li::before { content: '→'; color: var(--gold); flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 10px; margin-top: 1px; }
+.vocab-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+  padding: 3px 9px; font-size: 10.5px; color: var(--mist); font-family: 'DM Mono', monospace;
+  cursor: pointer; transition: all 0.15s; border-radius: 2px;
+}
+.chip:hover { background: rgba(201,168,76,0.12); border-color: var(--gold); color: var(--gold); }
+
+/* ── CHAT ── */
+.chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 24px 28px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.chat-messages::-webkit-scrollbar { width: 3px; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); }
+
+.msg-system {
+  text-align: center; font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 1.5px; color: var(--mist); text-transform: uppercase; padding: 6px 0; position: relative;
+}
+.msg-system::before, .msg-system::after { content: ''; position: absolute; top: 50%; width: calc(50% - 70px); height: 1px; background: rgba(255,255,255,0.07); }
+.msg-system::before { left: 0; } .msg-system::after { right: 0; }
+
+.msg-claude { display: flex; gap: 12px; align-items: flex-start; max-width: 78%; }
+.msg-user { display: flex; gap: 12px; align-items: flex-start; max-width: 78%; align-self: flex-end; flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 10px;
+}
+.av-claude { background: var(--slate2); border: 1px solid rgba(201,168,76,0.4); color: var(--gold); }
+.av-you { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: var(--paper); }
+
+.msg-bubble {
+  background: var(--slate2); border: 1px solid rgba(255,255,255,0.07);
+  padding: 12px 16px; font-size: 13.5px; line-height: 1.7;
+  color: rgba(245,240,232,0.88); border-radius: 0 8px 8px 8px;
+}
+.msg-user .msg-bubble {
+  background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.2);
+  border-radius: 8px 0 8px 8px;
+}
+.msg-bubble em { color: var(--gold-light); font-style: normal; font-weight: 500; }
+.msg-bubble strong { color: var(--paper); font-weight: 600; }
+
+/* Audio play button inside bubble */
+.play-btn {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 8px;
+  background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.25);
+  color: var(--gold); font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px;
+  padding: 4px 10px; cursor: pointer; text-transform: uppercase; transition: all 0.15s;
+}
+.play-btn:hover { background: rgba(201,168,76,0.22); }
+.play-btn.playing { color: var(--gold-light); }
+
+.msg-feedback {
+  background: rgba(46,125,94,0.1); border: 1px solid rgba(46,125,94,0.3);
+  border-left: 3px solid var(--green); padding: 12px 16px; font-size: 12.5px;
+  line-height: 1.65; color: rgba(245,240,232,0.85); max-width: 82%;
+}
+.fb-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: #5cb896; text-transform: uppercase; margin-bottom: 7px; display: block; }
+
+/* Typing */
+.typing-dots { display: flex; gap: 4px; padding: 12px 14px; background: var(--slate2); border: 1px solid rgba(255,255,255,0.07); border-radius: 0 8px 8px 8px; }
+.typing-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--mist); animation: tdot 1.2s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,60%,100%{opacity:0.2;transform:scale(1)} 30%{opacity:1;transform:scale(1.15)} }
+
+/* ── VOICE INPUT BAR ── */
+.input-bar {
+  background: var(--slate2); border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 18px 24px; flex-shrink: 0;
+}
+
+/* VOICE MODE */
+.voice-controls { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+.mic-ring {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 80px; height: 80px;
+}
+
+.mic-ring-pulse {
+  position: absolute; width: 80px; height: 80px; border-radius: 50%;
+  border: 2px solid var(--gold); opacity: 0; transform: scale(1);
+}
+
+.mic-ring-pulse.active {
+  animation: micPulse 1.2s ease-out infinite;
+}
+
+@keyframes micPulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+.mic-btn {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: var(--slate); border: 2px solid rgba(255,255,255,0.15);
+  color: var(--mist); font-size: 26px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; position: relative; z-index: 1;
+  flex-shrink: 0;
+}
+.mic-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); }
+.mic-btn.recording { background: var(--red); border-color: var(--red); color: white; box-shadow: 0 0 0 6px rgba(192,57,43,0.2); }
+.mic-btn.processing { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
+
+.voice-status {
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+  color: var(--mist); text-transform: uppercase; text-align: center;
+}
+
+.voice-status.recording { color: #e74c3c; }
+.voice-status.processing { color: var(--gold); }
+
+.voice-row { display: flex; align-items: center; gap: 16px; width: 100%; justify-content: center; }
+
+.voice-hints { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+.hint-chip {
+  background: transparent; border: 1px solid rgba(255,255,255,0.09); color: rgba(255,255,255,0.35);
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px;
+  padding: 4px 9px; cursor: pointer; transition: all 0.15s; text-transform: uppercase;
+}
+.hint-chip:hover { border-color: var(--gold); color: var(--gold); }
+
+/* TEXT MODE */
+.text-controls { display: flex; gap: 10px; align-items: flex-end; width: 100%; }
+textarea {
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--paper); font-family: 'DM Sans', sans-serif; font-size: 14px;
+  padding: 11px 14px; resize: none; outline: none; min-height: 46px; max-height: 140px;
+  line-height: 1.5; transition: border-color 0.2s;
+}
+textarea::placeholder { color: rgba(255,255,255,0.22); }
+textarea:focus { border-color: rgba(201,168,76,0.4); }
+.send-btn {
+  background: var(--gold); border: none; color: var(--ink); width: 46px; height: 46px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 17px; transition: background 0.2s; flex-shrink: 0;
+}
+.send-btn:hover { background: var(--gold-light); }
+.send-btn:disabled { background: rgba(255,255,255,0.08); cursor: not-allowed; }
+
+/* Welcome */
+.welcome-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+.welcome-icon { font-size: 52px; margin-bottom: 18px; }
+.welcome-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; margin-bottom: 10px; }
+.welcome-title em { color: var(--gold); font-style: italic; }
+.welcome-desc { font-size: 13.5px; color: var(--mist); max-width: 400px; line-height: 1.75; margin-bottom: 28px; }
+.start-btn { background: var(--gold); border: none; color: var(--ink); font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 2px; padding: 14px 30px; cursor: pointer; text-transform: uppercase; }
+.start-btn:hover { background: var(--gold-light); }
+
+/* Transcript strip */
+.transcript-strip {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  padding: 8px 14px; font-size: 12px; color: rgba(255,255,255,0.5);
+  font-style: italic; min-height: 34px; max-width: 600px; width: 100%;
+  text-align: center; margin: 0 auto;
+}
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.msg-claude,.msg-user,.msg-feedback,.msg-system { animation: fadeIn 0.3s ease both; }
+
+.sidebar::-webkit-scrollbar,.lesson-panel::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb,.lesson-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); }
+
+@media(max-width:900px){.sidebar{display:none}.lesson-panel{display:none}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">Biz<em>English</em></div>
+    <div class="logo-sub">Voice · Ad & Marketing</div>
+  </div>
+  <div class="sidebar-progress">
+    <div class="progress-label">Progresso</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0 de 10 sessões</div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="session-tag" id="topTag">Selecione uma sessão</div>
+      <div class="session-title-top" id="topTitle">BizEnglish Voice</div>
+    </div>
+    <div class="topbar-right">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btnVoiceMode" onclick="setMode('voice')">🎙 Voz</button>
+        <button class="mode-btn" id="btnTextMode" onclick="setMode('text')">⌨ Texto</button>
+      </div>
+      <button class="btn-sm" onclick="requestFeedback()" id="btnFeedback" style="display:none">📊 Feedback</button>
+      <button class="btn-sm" onclick="resetSession()" id="btnReset" style="display:none">↺ Reiniciar</button>
+      <button class="btn-gold-sm" onclick="nextSession()" id="btnNext" style="display:none">Próxima →</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- LESSON PANEL -->
+    <aside class="lesson-panel" id="lessonPanel">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:30px;text-align:center;height:100%">
+        <div>
+          <div style="font-size:32px;margin-bottom:10px">📚</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--mist);text-transform:uppercase">Selecione uma sessão</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CHAT -->
+    <div class="chat-area">
+      <div class="chat-messages" id="chatMessages">
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-icon">🎙️</div>
+          <div class="welcome-title">Fale em <em>inglês.</em><br>Eu respondo.</div>
+          <div class="welcome-desc">Escolha uma sessão e pratique conversação real. Eu assumo o papel do seu interlocutor — cliente, CEO, equipe criativa. Você fala, eu ouço, eu respondo em áudio.</div>
+          <button class="start-btn" onclick="loadSession(0)">Começar Sessão 1 →</button>
+        </div>
+      </div>
+
+      <!-- INPUT BAR -->
+      <div class="input-bar" id="inputBar" style="display:none">
+
+        <!-- VOICE MODE UI -->
+        <div id="voiceUI">
+          <div class="voice-controls">
+            <div class="transcript-strip" id="transcriptStrip">Pressione o microfone e fale em inglês...</div>
+            <div class="voice-row">
+              <div class="mic-ring">
+                <div class="mic-ring-pulse" id="micPulse"></div>
+                <button class="mic-btn" id="micBtn" onclick="toggleRecording()">🎙️</button>
+              </div>
+            </div>
+            <div class="voice-status" id="voiceStatus">Pressione para falar</div>
+            <div class="voice-hints">
+              <button class="hint-chip" onclick="speakHint('I need a moment to think about that.')">💭 Need a moment</button>
+              <button class="hint-chip" onclick="speakHint('Could you rephrase that please?')">🔄 Rephrase</button>
+              <button class="hint-chip" onclick="speakHint('Let me get back to you on that.')">📌 Get back to you</button>
+              <button class="hint-chip" onclick="requestFeedback()">📊 Feedback</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TEXT MODE UI -->
+        <div id="textUI" style="display:none">
+          <div class="text-controls">
+            <textarea id="userInput" placeholder="Type your response in English..." rows="1"
+              onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendTextMessage()">➤</button>
+          </div>
+          <div class="voice-hints" style="margin-top:8px">
+            <button class="hint-chip" onclick="insertHint('I need a moment to think about that.')">💭 Need a moment</button>
+            <button class="hint-chip" onclick="insertHint('Could you rephrase that please?')">🔄 Rephrase</button>
+            <button class="hint-chip" onclick="insertHint('Let me get back to you on that.')">📌 Get back to you</button>
+            <button class="hint-chip" onclick="requestFeedback()">📊 Feedback</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// COURSE DATA
+// ═══════════════════════════════════════
+const MODULES = [
+  {
+    title: "Client Meetings & Briefing", tag: "Módulo 01",
+    sessions: [
+      {
+        id: 0, title: "Opening Calls Like a Pro", tag: "M1 · Sessão 1",
+        scenario: "Você está entrando em uma videocall com <strong>Sarah Mitchell</strong>, VP de Marketing de uma empresa de tecnologia americana. É o primeiro encontro. Ela está avaliando sua agência para um projeto de reposicionamento de marca.",
+        objectives: ["Abrir a reunião com confiança","Fazer apresentações naturalmente","Definir a agenda","Criar rapport nos primeiros 3 minutos"],
+        vocab: ["Let me introduce myself","I appreciate you making time","Shall we get started?","I'm looking forward to this","What's on your agenda today?"],
+        voice: { name: "Sarah", accent: "en-US", pitch: 1.05, rate: 0.95 },
+        systemPrompt: `You are Sarah Mitchell, VP of Marketing at TechNova, a US-based B2B tech company. You're on a first video call with the user, who is a Business Director at an ad agency. Be professional, friendly but slightly guarded. Ask natural questions. Keep responses to 2-3 sentences. After every 3-4 exchanges, add ONE coaching note in parentheses like (💡 Great use of "align on expectations"!). Start by greeting them and mentioning you only have 30 minutes.`
+      },
+      {
+        id: 1, title: "Receiving a Brief", tag: "M1 · Sessão 2",
+        scenario: "Sarah está passando o briefing do projeto. Ouça ativamente, faça perguntas inteligentes e demonstre que entendeu o desafio — sem perder nenhuma informação crítica.",
+        objectives: ["Usar frases de escuta ativa","Fazer perguntas de clareza","Reformular para confirmar","Identificar o problema real de negócio"],
+        vocab: ["Just to clarify...","What I'm hearing is...","Could you elaborate on...","What does success look like?","What's the main pain point?"],
+        voice: { name: "Sarah", accent: "en-US", pitch: 1.05, rate: 0.95 },
+        systemPrompt: `You are Sarah Mitchell briefing the user on a campaign: TechNova wants to reposition from "enterprise software" to "human-centered technology". Budget ~$800K. Timeline 6 months. Markets: US, UK, Brazil. Give info in pieces. If they don't ask clarifying questions, drop hints they're missing info. Add coaching notes in parentheses. Start: "Okay, let me walk you through what we're looking to achieve."`
+      },
+      {
+        id: 2, title: "Full Meeting Simulation", tag: "M1 · Sessão 3",
+        scenario: "Simulação completa: call de kick-off com Sarah e James (Diretor de Criação). Conduza a reunião, gerencie dois interlocutores e feche com próximos passos claros.",
+        objectives: ["Gerenciar call com múltiplos participantes","Dirigir o fluxo da conversa","Lidar com interrupções","Fechar com action items"],
+        vocab: ["Let's make sure we're aligned","Let me take that offline","Shall we recap?","The action items are...","I'll follow up in writing"],
+        voice: { name: "Mixed", accent: "en-US", pitch: 1.0, rate: 0.95 },
+        systemPrompt: `You play TWO characters alternating: Sarah Mitchell (VP Marketing, pragmatic) and James Chen (Creative Director, more conceptual). Format: "Sarah: [line]" or "James: [line]". They sometimes agree, sometimes differ. Add coaching notes in parentheses every 3-4 exchanges. Start with James saying "Hi, sorry — two minutes late."`
+      }
+    ]
+  },
+  {
+    title: "Pitching & Presenting", tag: "Módulo 02",
+    sessions: [
+      {
+        id: 3, title: "Structuring Your Pitch", tag: "M2 · Sessão 1",
+        scenario: "Você está apresentando uma proposta de estratégia de marca para a liderança da TechNova. Conduza a apresentação com estrutura, narrativa e argumentos sólidos.",
+        objectives: ["Abrir uma apresentação com impacto","Usar linguagem de sinalização","Apresentar dados com confiança","Conduzir o Q&A"],
+        vocab: ["I'd like to take you through...","The insight behind this is...","What the data tells us is...","This approach is rooted in...","Let me elaborate on that"],
+        voice: { name: "David", accent: "en-US", pitch: 0.92, rate: 0.9 },
+        systemPrompt: `You are the audience: Sarah Mitchell and CEO David Park (skeptical but fair). Let them present, then ask: Sarah asks about audience evidence; David asks "Why your agency over a local firm?" and "What's the ROI expectation?" Add coaching notes in parentheses. Start: "Go ahead, the floor is yours."`
+      },
+      {
+        id: 4, title: "Handling Objections", tag: "M2 · Sessão 2",
+        scenario: "No meio da apresentação, o cliente está questionando o conceito criativo, o prazo e o preço. Mantenha a calma e responda com confiança.",
+        objectives: ["Reconhecer objeções profissionalmente","Reformular feedback negativo","Usar dados para sustentar posição","Recuperar de perguntas difíceis"],
+        vocab: ["That's a fair point, and...","I understand the concern...","What I'd suggest is...","The rationale here is...","Let me address that directly"],
+        voice: { name: "David", accent: "en-US", pitch: 0.9, rate: 0.88 },
+        systemPrompt: `You are David Park, CEO of TechNova. Push back on: 1) "The creative concept feels too risky." 2) "Six months is too long — competitor launches in 3." 3) "Budget is 30% over what we discussed." Be firm but fair. Soften if they handle well. Add coaching notes in parentheses. Start: "I have to be honest — I have some concerns."`
+      },
+      {
+        id: 5, title: "Full Pitch Simulation", tag: "M2 · Sessão 3",
+        scenario: "Simulação completa de pitch — do opening ao fechamento. Apresente a proposta completa para o painel de decisão da TechNova.",
+        objectives: ["Fluxo completo de apresentação","Gerenciar tempo sob pressão","Fechar com call to action forte","Lidar com perguntas inesperadas"],
+        vocab: ["In conclusion...","The next step I'd recommend...","We're confident that...","We'd love the opportunity to...","When would you like to move forward?"],
+        voice: { name: "Panel", accent: "en-US", pitch: 1.0, rate: 0.92 },
+        systemPrompt: `You are three characters: Sarah (Marketing VP, engaged), David (CEO, strategic), Karen Liu (CFO, only cares about ROI). Format as "Sarah:", "David:", or "Karen:". Add coaching notes in parentheses. Start: "Alright, we're all here. You have the floor."`
+      }
+    ]
+  },
+  {
+    title: "Negotiation & Scoping", tag: "Módulo 03",
+    sessions: [
+      {
+        id: 6, title: "Scope Creep Negotiation", tag: "M3 · Sessão 1",
+        scenario: "O cliente quer adicionar entregas depois do contrato assinado. Negocie com firmeza e construtividade — proteja sua equipe sem perder o relacionamento.",
+        objectives: ["Identificar e nomear scope creep","Apresentar contra-proposta","Usar linguagem condicional if-then","Chegar a um acordo win-win"],
+        vocab: ["That falls outside our scope","We can accommodate that if...","A trade-off I'd suggest is...","This would impact the timeline","Let's revise the SOW"],
+        voice: { name: "Sarah", accent: "en-US", pitch: 1.05, rate: 0.95 },
+        systemPrompt: `You are Sarah Mitchell calling urgently to request 3 extra deliverables without extra budget. Start: "Hey, I'm glad I caught you. We have a last-minute request..." Push for the extras. If they hold firm professionally, gradually accept a compromise. If they cave immediately, push for even more. Add coaching notes in parentheses.`
+      },
+      {
+        id: 7, title: "Budget Pressure", tag: "M3 · Sessão 2",
+        scenario: "A TechNova quer cortar o budget em 25% mas manter todas as entregas. Negocie uma solução viável para sua agência.",
+        objectives: ["Enquadrar cortes de budget como risco","Propor priorização de entregas","Usar linguagem financeira com confiança","Fechar com acordo revisado"],
+        vocab: ["The trade-off here is...","We'd need to deprioritize...","Our recommendation would be...","Given the budget constraints...","What's non-negotiable for you?"],
+        voice: { name: "Karen", accent: "en-US", pitch: 1.08, rate: 0.9 },
+        systemPrompt: `You are Karen Liu, CFO of TechNova. The board demands 25% cut from all vendors. Be financially-minded, not emotional. Use "The board has been clear" and "I need a revised proposal by end of week." Add coaching notes in parentheses. Start: "I appreciate your work, but I need to have a difficult conversation with you."`
+      }
+    ]
+  },
+  {
+    title: "Agency Collaboration", tag: "Módulo 04",
+    sessions: [
+      {
+        id: 8, title: "Briefing the Creative Team", tag: "M4 · Sessão 1",
+        scenario: "Você precisa briefar sua equipe de criação interna sobre o projeto TechNova. Comunique estratégia, direção criativa e expectativas do cliente — inspirando sem microgerenciar.",
+        objectives: ["Fazer um briefing criativo em inglês","Inspirar sem prescrever","Lidar com pushback criativo","Alinhar sobre a visão"],
+        vocab: ["The insight driving this is...","The brand should feel...","The audience we're speaking to...","What we want to avoid is...","The creative territory is..."],
+        voice: { name: "Rodrigo", accent: "en-US", pitch: 0.95, rate: 1.0 },
+        systemPrompt: `You are Rodrigo, Creative Director at the agency. You're talented but opinionated. Ask: "What does 'human-centered' actually mean in practice?" and "Are we doing this for awareness or conversion?" If brief is clear, be enthusiastic. If vague, be direct: "I need more clarity before I point my team anywhere." Add coaching notes in parentheses. Start: "Alright, walk me through this. What are we solving for?"`
+      },
+      {
+        id: 9, title: "Campaign Review & Feedback", tag: "M4 · Sessão 2",
+        scenario: "Sua equipe apresenta os primeiros conceitos de campanha. Dê feedback construtivo em inglês — específico, acionável e motivador.",
+        objectives: ["Dar feedback estruturado em inglês","Equilibrar positivo e construtivo","Ancorar feedback no briefing","Motivar a equipe a iterar"],
+        vocab: ["What's working really well is...","Where I'd push further is...","Going back to the brief...","The client will ask about...","My direction for the next round is..."],
+        voice: { name: "Rodrigo", accent: "en-US", pitch: 0.95, rate: 1.0 },
+        systemPrompt: `You are Rodrigo presenting 3 concepts with enthusiasm and some defensiveness. Concept A: bold/risky. Concept B: safe/strategic. Concept C: middle but lacks hook. React to feedback naturally. If too vague, push back: "I need more than 'not quite right' — what specifically isn't landing?" Add coaching notes in parentheses. Start presenting Concept A with excitement.`
+      }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let currentSession = null;
+let conversationHistory = [];
+let completedSessions = new Set();
+let isLoading = false;
+let isRecording = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let currentMode = 'voice'; // 'voice' | 'text'
+let currentUtterance = null;
+
+// ═══════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════
+function buildSidebar() {
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = '';
+  MODULES.forEach(mod => {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<div class="nav-module-title">${mod.tag}</div>`;
+    mod.sessions.forEach(sess => {
+      const d = document.createElement('div');
+      d.className = 'nav-session' + (completedSessions.has(sess.id) ? ' completed' : '');
+      d.id = `nav-${sess.id}`;
+      d.onclick = () => loadSession(sess.id);
+      d.innerHTML = `<div class="nav-dot"></div><span>${sess.title}</span>`;
+      wrap.appendChild(d);
+    });
+    nav.appendChild(wrap);
+  });
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = MODULES.reduce((a,m) => a + m.sessions.length, 0);
+  const done = completedSessions.size;
+  document.getElementById('progressFill').style.width = Math.round(done/total*100) + '%';
+  document.getElementById('progressText').textContent = `${done} de ${total} sessões`;
+}
+
+// ═══════════════════════════════════════
+// LOAD SESSION
+// ═══════════════════════════════════════
+function loadSession(id) {
+  let sess = null;
+  MODULES.forEach(m => m.sessions.forEach(s => { if (s.id === id) sess = s; }));
+  if (!sess) return;
+  currentSession = sess;
+  conversationHistory = [];
+
+  stopSpeech();
+
+  document.querySelectorAll('.nav-session').forEach(el => el.classList.remove('active'));
+  const navEl = document.getElementById(`nav-${id}`);
+  if (navEl) navEl.classList.add('active');
+
+  document.getElementById('topTag').textContent = sess.tag;
+  document.getElementById('topTitle').textContent = sess.title;
+  document.getElementById('btnFeedback').style.display = 'inline-block';
+  document.getElementById('btnReset').style.display = 'inline-block';
+  document.getElementById('btnNext').style.display = 'none';
+
+  buildLessonPanel(sess);
+
+  const chat = document.getElementById('chatMessages');
+  chat.innerHTML = `
+    <div class="msg-system">Sessão iniciada · ${sess.tag}</div>
+    <div class="msg-claude" id="openingMsg">
+      <div class="msg-avatar av-claude">AI</div>
+      <div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+    </div>`;
+
+  document.getElementById('inputBar').style.display = 'block';
+  document.getElementById('welcomeScreen')?.remove();
+  setTimeout(() => getOpeningMessage(sess), 700);
+}
+
+// ═══════════════════════════════════════
+// LESSON PANEL
+// ═══════════════════════════════════════
+function buildLessonPanel(sess) {
+  document.getElementById('lessonPanel').innerHTML = `
+    <div class="panel-sec">
+      <div class="panel-sec-title">Cenário</div>
+      <div class="scenario-box">${sess.scenario}</div>
+    </div>
+    <div class="panel-sec">
+      <div class="panel-sec-title">Objetivos</div>
+      <ul class="obj-list">${sess.objectives.map(o=>`<li>${o}</li>`).join('')}</ul>
+    </div>
+    <div class="panel-sec">
+      <div class="panel-sec-title">Frases-chave (clique para usar)</div>
+      <div class="vocab-chips">${sess.vocab.map(v=>`<div class="chip" onclick="speakOrInsert('${v}')">${v}</div>`).join('')}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════
+// CLAUDE API
+// ═══════════════════════════════════════
+async function callClaude(messages, systemOverride) {
+  const system = systemOverride || currentSession.systemPrompt;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system, messages })
+  });
+  const data = await res.json();
+  return data.content.map(b => b.text || '').join('');
+}
+
+async function getOpeningMessage(sess) {
+  try {
+    const reply = await callClaude([{ role: 'user', content: '[Session starting. Begin the roleplay now.]' }]);
+    conversationHistory.push({ role: 'user', content: '[Session start]' });
+    conversationHistory.push({ role: 'assistant', content: reply });
+    const el = document.getElementById('openingMsg');
+    if (el) el.querySelector('.msg-bubble').innerHTML = formatMsg(reply) + makePlayBtn(reply);
+    speakText(reply, sess.voice);
+  } catch(e) {
+    const el = document.getElementById('openingMsg');
+    if (el) el.querySelector('.msg-bubble').textContent = "Ready to start — go ahead!";
+  }
+}
+
+// ═══════════════════════════════════════
+// VOICE RECORDING (Web Speech API)
+// ═══════════════════════════════════════
+let recognition = null;
+
+function initRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+  const r = new SpeechRecognition();
+  r.lang = 'en-US';
+  r.continuous = false;
+  r.interimResults = true;
+
+  r.onstart = () => {
+    isRecording = true;
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('micPulse').classList.add('active');
+    setVoiceStatus('recording', '🔴 Gravando... fale agora');
+    document.getElementById('transcriptStrip').textContent = '';
+  };
+
+  r.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('transcriptStrip').textContent = final || interim || '...';
+    if (final) r._finalTranscript = final;
+  };
+
+  r.onend = () => {
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micPulse').classList.remove('active');
+    const transcript = r._finalTranscript || '';
+    r._finalTranscript = '';
+    if (transcript.trim()) {
+      processVoiceInput(transcript.trim());
+    } else {
+      setVoiceStatus('', 'Pressione para falar');
+      document.getElementById('transcriptStrip').textContent = 'Não foi possível capturar. Tente novamente.';
+    }
+  };
+
+  r.onerror = (e) => {
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micPulse').classList.remove('active');
+    setVoiceStatus('', 'Erro. Tente novamente.');
+  };
+
+  return r;
+}
+
+function toggleRecording() {
+  if (isLoading) return;
+  stopSpeech();
+
+  if (isRecording) {
+    recognition?.stop();
+    return;
+  }
+
+  if (!recognition) recognition = initRecognition();
+  if (!recognition) {
+    alert('Seu navegador não suporta reconhecimento de voz. Use Chrome ou Edge, ou mude para o modo Texto.');
+    return;
+  }
+  recognition.start();
+}
+
+async function processVoiceInput(text) {
+  if (!currentSession) return;
+  setVoiceStatus('processing', '⏳ Processando...');
+  document.getElementById('transcriptStrip').textContent = text;
+
+  addUserMessage(text);
+  conversationHistory.push({ role: 'user', content: text });
+
+  isLoading = true;
+  const typingId = addTyping();
+
+  try {
+    const reply = await callClaude(conversationHistory);
+    conversationHistory.push({ role: 'assistant', content: reply });
+    removeTyping(typingId);
+    addClaudeMessage(reply, true);
+    speakText(reply, currentSession.voice);
+
+    if (conversationHistory.length >= 8) {
+      completedSessions.add(currentSession.id);
+      document.getElementById('btnNext').style.display = 'inline-block';
+      updateProgress();
+      const nav = document.getElementById(`nav-${currentSession.id}`);
+      if (nav) { nav.classList.add('completed'); nav.classList.remove('active'); }
+    }
+  } catch(e) {
+    removeTyping(typingId);
+    addSystemMsg('Erro de conexão. Tente novamente.');
+  }
+
+  isLoading = false;
+  setVoiceStatus('', 'Pressione para falar');
+}
+
+// ═══════════════════════════════════════
+// TEXT MODE
+// ═══════════════════════════════════════
+async function sendTextMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text || isLoading || !currentSession) return;
+
+  isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+  input.value = ''; autoResize(input);
+
+  addUserMessage(text);
+  conversationHistory.push({ role: 'user', content: text });
+
+  const typingId = addTyping();
+
+  try {
+    const reply = await callClaude(conversationHistory);
+    conversationHistory.push({ role: 'assistant', content: reply });
+    removeTyping(typingId);
+    addClaudeMessage(reply, true);
+    if (currentMode === 'voice') speakText(reply, currentSession.voice);
+
+    if (conversationHistory.length >= 8) {
+      completedSessions.add(currentSession.id);
+      document.getElementById('btnNext').style.display = 'inline-block';
+      updateProgress();
+      const nav = document.getElementById(`nav-${currentSession.id}`);
+      if (nav) { nav.classList.add('completed'); nav.classList.remove('active'); }
+    }
+  } catch(e) {
+    removeTyping(typingId);
+    addSystemMsg('Erro. Tente novamente.');
+  }
+
+  isLoading = false;
+  document.getElementById('sendBtn').disabled = false;
+  input.focus();
+}
+
+// ═══════════════════════════════════════
+// TEXT TO SPEECH
+// ═══════════════════════════════════════
+function speakText(text, voiceConfig) {
+  if (!window.speechSynthesis) return;
+  stopSpeech();
+
+  // Clean text: remove coaching notes and markdown
+  const clean = text
+    .replace(/\(💡.*?\)/g, '')
+    .replace(/\(.*?\)/g, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/Sarah:|James:|David:|Karen:|Rodrigo:/g, '')
+    .trim();
+
+  const utterance = new SpeechSynthesisUtterance(clean);
+  utterance.lang = voiceConfig?.accent || 'en-US';
+  utterance.pitch = voiceConfig?.pitch || 1.0;
+  utterance.rate = voiceConfig?.rate || 0.95;
+  utterance.volume = 1;
+
+  // Try to find a good voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
+    || voices.find(v => v.lang === 'en-US')
+    || voices.find(v => v.lang.startsWith('en'));
+  if (preferred) utterance.voice = preferred;
+
+  currentUtterance = utterance;
+  window.speechSynthesis.speak(utterance);
+}
+
+function stopSpeech() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  currentUtterance = null;
+}
+
+function makePlayBtn(text) {
+  return `<br><button class="play-btn" onclick="speakText(${JSON.stringify(text)}, currentSession?.voice)">▶ Ouvir novamente</button>`;
+}
+
+// ═══════════════════════════════════════
+// FEEDBACK
+// ═══════════════════════════════════════
+async function requestFeedback() {
+  if (isLoading || !currentSession || conversationHistory.length < 2) return;
+  isLoading = true;
+  const typingId = addTyping();
+
+  const messages = [
+    ...conversationHistory,
+    { role: 'user', content: '[STOP ROLEPLAY. Switch to English coach mode. Review my messages and give concise feedback on: 1) Fluency & naturalness 2) Business vocabulary highlights 3) One key area to improve 4) One powerful phrase I could have used. Use emojis, be warm and specific. End with encouragement.]' }
+  ];
+
+  try {
+    const reply = await callClaude(messages, 'You are a warm, expert English coach for senior business professionals. Give specific, actionable, encouraging feedback.');
+    removeTyping(typingId);
+    addFeedbackMsg(reply);
+    speakText(reply, { accent: 'en-US', pitch: 1.0, rate: 0.92 });
+  } catch(e) { removeTyping(typingId); }
+
+  isLoading = false;
+}
+
+// ═══════════════════════════════════════
+// MODE TOGGLE
+// ═══════════════════════════════════════
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('voiceUI').style.display = mode === 'voice' ? 'block' : 'none';
+  document.getElementById('textUI').style.display = mode === 'text' ? 'block' : 'none';
+  document.getElementById('btnVoiceMode').classList.toggle('active', mode === 'voice');
+  document.getElementById('btnTextMode').classList.toggle('active', mode === 'text');
+}
+
+// ═══════════════════════════════════════
+// DOM HELPERS
+// ═══════════════════════════════════════
+function formatMsg(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\((💡[^)]*)\)/g, '<br><small style="color:var(--gold-light);font-family:DM Mono,monospace;font-size:10px">$1</small>')
+    .replace(/\n/g, '<br>');
+}
+
+function addClaudeMessage(text, withPlayBtn) {
+  const chat = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'msg-claude';
+  const play = withPlayBtn ? makePlayBtn(text) : '';
+  d.innerHTML = `<div class="msg-avatar av-claude">AI</div><div class="msg-bubble">${formatMsg(text)}${play}</div>`;
+  chat.appendChild(d); scrollChat();
+}
+
+function addUserMessage(text) {
+  const chat = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'msg-user';
+  d.innerHTML = `<div class="msg-avatar av-you">EU</div><div class="msg-bubble">${text}</div>`;
+  chat.appendChild(d); scrollChat();
+}
+
+function addFeedbackMsg(text) {
+  const chat = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'msg-feedback';
+  d.innerHTML = `<span class="fb-title">📊 Coach Feedback</span>${formatMsg(text)}`;
+  chat.appendChild(d); scrollChat();
+}
+
+function addSystemMsg(text) {
+  const chat = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'msg-system';
+  d.textContent = text;
+  chat.appendChild(d); scrollChat();
+}
+
+function addTyping() {
+  const chat = document.getElementById('chatMessages');
+  const id = 'typing-' + Date.now();
+  const d = document.createElement('div');
+  d.className = 'msg-claude'; d.id = id;
+  d.innerHTML = `<div class="msg-avatar av-claude">AI</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  chat.appendChild(d); scrollChat();
+  return id;
+}
+
+function removeTyping(id) { document.getElementById(id)?.remove(); }
+function scrollChat() { const c = document.getElementById('chatMessages'); c.scrollTop = c.scrollHeight; }
+function setVoiceStatus(cls, text) {
+  const el = document.getElementById('voiceStatus');
+  el.className = 'voice-status' + (cls ? ' ' + cls : '');
+  el.textContent = text;
+}
+
+function speakOrInsert(text) {
+  if (currentMode === 'voice') speakText(text, { accent: 'en-US', pitch: 1.0, rate: 0.9 });
+  else insertHint(text);
+}
+
+function speakHint(text) {
+  if (currentMode === 'voice') {
+    document.getElementById('transcriptStrip').textContent = text;
+    processVoiceInput(text);
+  } else insertHint(text);
+}
+
+function insertHint(text) {
+  const input = document.getElementById('userInput');
+  if (input) { input.value = text; input.focus(); autoResize(input); }
+}
+
+function resetSession() { if (currentSession) { stopSpeech(); loadSession(currentSession.id); } }
+
+function nextSession() {
+  let all = [];
+  MODULES.forEach(m => m.sessions.forEach(s => all.push(s)));
+  const idx = all.findIndex(s => s.id === currentSession?.id);
+  if (idx < all.length - 1) loadSession(all[idx+1].id);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendTextMessage(); }
+}
+
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 140) + 'px'; }
+
+// Load voices (async in some browsers)
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  window.speechSynthesis.getVoices();
+}
+
+buildSidebar();
+</script>
+</body>
+</html>
